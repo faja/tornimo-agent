@@ -38,14 +38,14 @@ func (c *loadCheck) Run() error {
 	return nil
 }
 
-func (l *loadCheck) Stop() error {
+func (*loadCheck) Stop() error {
 	return nil
 }
 
-func (l *loadCheck) Interval() time.Duration {
+func (*loadCheck) Interval() time.Duration {
 	return time.Duration(time.Second * 15)
 }
 
-func (l *loadCheck) ID() check.ID {
-	return l.id
+func (c *loadCheck) ID() check.ID {
+	return c.id
 }

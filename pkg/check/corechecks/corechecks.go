@@ -22,7 +22,9 @@ func LoadChecks(enter chan<- check.Check) {
 }
 
 func genCoreChecks() []check.Check {
-	coreChecks := make([]check.Check, 0)
-	coreChecks = append(coreChecks, system.NewLoadCheck())
+	coreChecks := []check.Check{
+		system.NewLoadCheck(),
+		system.NewUptimeCheck(),
+	}
 	return coreChecks
 }
