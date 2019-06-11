@@ -15,6 +15,7 @@ type Forwarder interface {
 }
 
 type defaultForwarder struct {
+	tornimoAddress  string
 	numberOfWorkers uint32
 	internalState   state.State
 
@@ -26,8 +27,9 @@ type defaultForwarder struct {
 	m       sync.Mutex
 }
 
-func NewDefaultForwarder() *defaultForwarder {
+func NewDefaultForwarder(tornimoAddress string) *defaultForwarder {
 	return &defaultForwarder{
+		tornimoAddress:      tornimoAddress,
 		numberOfWorkers:     2,
 		internalState:       state.Stopped,
 		highPrio:            make(chan transaction),
@@ -38,17 +40,18 @@ func NewDefaultForwarder() *defaultForwarder {
 }
 
 func (f *defaultForwarder) Start() error {
-	log.Printf("[OK] starting defaultForwarder\n")
+	log.Printf("[forwarder] starting forwarder\n")
 	f.m.Lock()
 	defer f.m.Unlock()
 
 	if f.internalState == state.Started {
-		log.Printf("[ERROR] defaultForwarder is already started\n")
+		// TODO logging
+		log.Printf("[forwarder][ERROR] defaultForwarder is already started\n")
 		return fmt.Errorf("defaultForwarder is already started\n")
 	}
 
 	for id := uint32(1); id <= f.numberOfWorkers; id++ {
-		w, err := newWorker(id, f.highPrio, f.lowPrio, f.requeuedTransaction)
+		w, err := newWorker(id, f.tornimoAddress, f.highPrio, f.lowPrio, f.requeuedTransaction)
 		if err != nil {
 			return err
 		}
@@ -60,17 +63,19 @@ func (f *defaultForwarder) Start() error {
 	}
 
 	f.internalState = state.Started
-	log.Printf("[OK] defaultForwarder started\n")
+	// TODO logging
+	// log.Printf("[forwarder] defaultForwarder started\n")
 	return nil
 }
 
 func (f *defaultForwarder) Stop() {
-	log.Printf("[OK] stopping defaultForwarder\n")
+	// TODO logging
+	//log.Printf("[forwarder] stopping defaultForwarder\n")
 	f.m.Lock()
 	defer f.m.Unlock()
 
 	if f.internalState == state.Started {
-		log.Printf("[WARNING] defaultForwarder is already stopped\n")
+		log.Printf("[forwarder] defaultForwarder is already stopped\n")
 	}
 
 	for _, w := range f.workers {
@@ -78,7 +83,7 @@ func (f *defaultForwarder) Stop() {
 	}
 
 	f.internalState = state.Stopped
-	log.Printf("[OK] defaultForwarder stopped\n")
+	log.Printf("[forwarder] defaultForwarder stopped\n")
 }
 
 func (f *defaultForwarder) SubmitSeries(b []byte) {

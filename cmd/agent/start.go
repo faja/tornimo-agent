@@ -1,7 +1,6 @@
 package agent
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -10,6 +9,7 @@ import (
 	"github.com/faja/tornimo-agent/pkg/aggregator"
 	"github.com/faja/tornimo-agent/pkg/collector"
 	"github.com/faja/tornimo-agent/pkg/forwarder"
+	"github.com/faja/tornimo-agent/pkg/serializer"
 	"github.com/faja/tornimo-agent/pkg/statsd"
 	"github.com/spf13/cobra"
 )
@@ -54,7 +54,7 @@ func start(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Println("Agent started")
+	log.Println("[agent] agent started")
 
 	// run forever until stopped
 	select {
@@ -65,15 +65,18 @@ func start(cmd *cobra.Command, args []string) error {
 
 func startAgent() error {
 	// TODO: fix fowarder
-	f := forwarder.NewDefaultForwarder()
+	f := forwarder.NewDefaultForwarder(globalConfig["tornimo_put_address"])
+	// TODO move start to New
 	f.Start()
 
-	// TODO add sampler
-	a := aggregator.InitAggregator(f)
+	s := serializer.NewSerializer(f, globalConfig["tornimo_token"])
+
+	a := aggregator.InitAggregator(globalConfig["hostname"], s)
+
 	collector.NewCollector()
-	// TODO
-	statsd.NewServer(8125, a.GetMetricsChan())
-	//statsd.NewServer(globalConfig["statsd_port"], a.GetMetricsChan())
+
+	// TODO statsd_port is a string:(
+	statsd.NewServer(globalConfig["statsd_port"], a.GetMetricsChan())
 
 	return nil
 }

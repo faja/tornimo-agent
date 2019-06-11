@@ -17,11 +17,11 @@ type udpListener struct {
 	buffer *packetBuffer
 }
 
-func newUDPListener(port uint, outputChannel chan []*packet, pool *packetPool) (listener, error) {
+func newUDPListener(port string, outputChannel chan []*packet, pool *packetPool) (listener, error) {
 	var conn net.PacketConn
 	var err error
 	// TODO config host and port
-	var url string = fmt.Sprintf("127.0.0.1:%d", port)
+	var url string = fmt.Sprintf("127.0.0.1:%s", port)
 
 	conn, err = net.ListenPacket("udp", url)
 

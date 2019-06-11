@@ -57,10 +57,16 @@ func GetSender(id check.ID) (Sender, error) {
 func (sp *checkSenderPool) getSender(id check.ID) (Sender, error) {
 	var sender Sender
 
+	// TODO
+	hostname := ""
+	if string(id) != "" {
+		hostname = aggregatorInstance.defaultHostname
+	}
+
 	sp.m.Lock()
 	sender, ok := sp.senders[id]
 	if !ok {
-		sender = newCheckSender(id, "")
+		sender = newCheckSender(id, hostname)
 		sp.senders[id] = sender
 	}
 	sp.m.Unlock()
@@ -79,8 +85,9 @@ func (s *checkSender) Gauge(metricName string, value float64, hostname string, t
 func (s *checkSender) sendMetric(metricName string, value float64, hostname string, metricTags []string, metircType metrics.MetricType) {
 	s.smsOut <- senderMetricSample{
 		s.id,
+		// TODO better place to add hostname?
 		&metrics.MetricSample{
-			Name:      metricName,
+			Name:      s.defaultHostname + "." + metricName,
 			Value:     value,
 			Tags:      metricTags,
 			Timestamp: time.Now().Unix(),

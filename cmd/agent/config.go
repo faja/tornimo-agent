@@ -18,9 +18,12 @@ func readConfig() error {
 	viper.SetConfigFile(configFile)
 	viper.SetConfigType("yaml")
 	if err := viper.ReadInConfig(); err != nil {
-		// TODO
-		return err
+		log.Printf("[WARNING] could not read config from %s: %v\n", configFile, err)
 	}
+
+	viper.SetEnvPrefix("TO")
+	viper.AutomaticEnv()
+
 	return parseConfig()
 }
 
@@ -30,25 +33,26 @@ func parseConfig() error {
 	if hostname == "" {
 		return fmt.Errorf("[config] please configure 'hostname' option in config file %s", configFile)
 	}
-	globalConfig["hostname"] = viper.GetString("hostname")
+	globalConfig["hostname"] = hostname
 
+	viper.SetDefault("statsd_port", "8125")
 	statsd_port := viper.GetString("statsd_port")
 	if statsd_port == "" {
 		return fmt.Errorf("[config] please configure 'statsd_port' option in config file %s", configFile)
 	}
-	globalConfig["statsd_port"] = viper.GetString("statsd_port")
+	globalConfig["statsd_port"] = statsd_port
 
-	tornimo_put := viper.GetString("tornimo_put")
-	if tornimo_put == "" {
-		return fmt.Errorf("[config] please configure 'tornimo_put' option in config file %s", configFile)
+	tornimo_put_address := viper.GetString("tornimo_put_address")
+	if tornimo_put_address == "" {
+		return fmt.Errorf("[config] please configure 'tornimo_put_address' option in config file %s", configFile)
 	}
-	globalConfig["tornimo_put"] = viper.GetString("tornimo_put")
+	globalConfig["tornimo_put_address"] = tornimo_put_address
 
 	tornimo_token := viper.GetString("tornimo_token")
 	if tornimo_token == "" {
 		return fmt.Errorf("[config] please configure 'tornimo_token' option in config file %s", configFile)
 	}
-	globalConfig["tornimo_token"] = viper.GetString("tornimo_token")
+	globalConfig["tornimo_token"] = tornimo_token
 
 	for k, v := range globalConfig {
 		log.Printf("[config] %s = %s\n", k, v)

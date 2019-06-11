@@ -1,7 +1,6 @@
 package aggregator
 
 import (
-	"bytes"
 	"log"
 
 	"github.com/faja/tornimo-agent/pkg/metrics"
@@ -36,26 +35,15 @@ func (s *sampler) addSample(metricSample *metrics.MetricSample, timestamp int64)
 }
 
 // TODO
-func (s *sampler) flush(timestamp int64) {
-
+func (s *sampler) flush(timestamp int64) []*metrics.Serie {
 	// TODO add error handling
-	// TODO
-	var b bytes.Buffer
 
-	// TODO send this to serializer
+	series := make([]*metrics.Serie, 0, 0)
+
 	// for now there is only 0 bucket
 	for _, cm := range s.bucket {
-		// TODO add []Serie
-		metrics := cm.Flush(timestamp)
-
-		for _, metricLine := range metrics {
-
-			_, err := b.WriteString(metricLine)
-			if err != nil {
-				log.Print(err)
-			}
-		}
-
+		series = append(series, cm.Flush(timestamp)...)
 	}
-	aggregatorInstance.forwarder.SubmitSeries(b.Bytes())
+
+	return series
 }

@@ -29,27 +29,23 @@ func (m ContextMetrics) AddSample(contextKey ContextKey, sample *MetricSample, t
 }
 
 // TODO pointer?
-func (m ContextMetrics) Flush(timestamp int64) []string {
-	// TODO
-	tornimoToken := "b04593ed-426c-425d-90d0-2c43c3f1576b"
+func (m ContextMetrics) Flush(timestamp int64) []*Serie {
 	// TODO fix below
-	metrics := make([]string, 0, 0)
+	series := make([]*Serie, 0, 0)
 
-	for key, metric := range m {
-		points, err := metric.flush(timestamp)
-
-		//TODO
-		//if err != nil
+	for metricName, metricPoints := range m {
+		points, err := metricPoints.flush(timestamp)
+		//TODO better error handling
 		if err != nil {
-			log.Printf("no data error while flushing metric '%s'\n", key)
+			log.Printf("no data error while flushing metric '%s'\n", metricName)
 		}
 
-		for _, point := range points {
-			// todo we dont want this for statsdSampler
-			hostname := "mc.laptop"
-			metricLine := fmt.Sprintf("%s.%s.%s %f %d\n", tornimoToken, hostname, key, point.Value, timestamp)
-			metrics = append(metrics, metricLine)
+		serie := &Serie{
+			Name:   string(metricName),
+			Points: points,
 		}
+		series = append(series, serie)
 	}
-	return metrics
+
+	return series
 }

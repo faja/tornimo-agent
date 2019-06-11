@@ -18,7 +18,7 @@ type runner struct {
 }
 
 func NewRunner(ch <-chan check.Check) *runner {
-	log.Printf("[runner] creating and starting new runner\n")
+	log.Printf("[runner] starting runner\n")
 
 	r := &runner{
 		numberOfWorkers: 2,

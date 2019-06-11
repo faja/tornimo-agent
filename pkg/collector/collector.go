@@ -10,7 +10,7 @@ import (
 )
 
 func NewCollector() {
-	log.Printf("[collector] creating and starting new collector\n")
+	log.Printf("[collector] starting collector\n")
 	checkChan := make(chan check.Check)
 
 	_ = runner.NewRunner(checkChan)

@@ -14,7 +14,7 @@ type scheduler struct {
 }
 
 func NewScheduler(ch chan<- check.Check) *scheduler {
-	log.Printf("[scheduler] creating and starting new scheduler\n")
+	log.Printf("[scheduler] starting scheduler\n")
 	s := &scheduler{
 		checksPipe: ch,
 		enter:      make(chan check.Check),

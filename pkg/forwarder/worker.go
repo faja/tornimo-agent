@@ -10,14 +10,6 @@ import (
 	"github.com/faja/tornimo-agent/pkg/state"
 )
 
-/*
- * grafana: https://tornimo.tornimo.io
- * put:     put.tornimo.tornimo.io 2003
- * token:   b04593ed-426c-425d-90d0-2c43c3f1576b
- */
-
-var tornimoAddress = "put.tornimo.tornimo.io:2003"
-
 type worker struct {
 	id            uint32
 	internalState state.State
@@ -33,15 +25,16 @@ type worker struct {
 	m sync.Mutex // To control Start/Stop races
 }
 
-func newWorker(id uint32, highPrioChan <-chan transaction, lowPrioChan <-chan transaction, requeueChan chan<- transaction) (*worker, error) {
-	log.Printf("[OK] creating worker [id:%d]\n", id)
+func newWorker(id uint32, tornimoAddress string, highPrioChan <-chan transaction, lowPrioChan <-chan transaction, requeueChan chan<- transaction) (*worker, error) {
+	//log.Printf("[forwarder] creating worker [id:%d]\n", id)
 
-	c, err := net.Dial("tcp", tornimoAddress)
+	c, err := net.Dial("tcp", fmt.Sprintf("%s:%d", tornimoAddress, 2003))
 	if err != nil {
+		log.Fatalf("Could not create forwarder.worker: %v\n", err)
 		return nil, fmt.Errorf("Could not create forwarder.worker: %v\n", err)
 	}
 
-	log.Printf("[OK] worker [id:%d] created\n", id)
+	//log.Printf("[OK] worker [id:%d] created\n", id)
 	return &worker{
 		id:            id,
 		internalState: state.Stopped,
@@ -55,13 +48,13 @@ func newWorker(id uint32, highPrioChan <-chan transaction, lowPrioChan <-chan tr
 }
 
 func (w *worker) stop() {
-	log.Printf("[OK] stopping worker [id:%d]\n", w.id)
+	//log.Printf("[OK] stopping worker [id:%d]\n", w.id)
 
 	w.m.Lock()
 	defer w.m.Unlock()
 
 	if w.internalState == state.Stopped {
-		log.Printf("[WARN] worker [id %d] is already stopped\n", w.id)
+		//log.Printf("[WARN] worker [id %d] is already stopped\n", w.id)
 		return
 	}
 
@@ -69,17 +62,17 @@ func (w *worker) stop() {
 	<-w.stoppedChan
 	w.internalState = state.Stopped
 
-	log.Printf("[OK] worker [id:%d] stopped\n", w.id)
+	//log.Printf("[OK] worker [id:%d] stopped\n", w.id)
 }
 
 func (w *worker) start() {
-	log.Printf("[OK] starting worker [id:%d]\n", w.id)
+	//log.Printf("[OK] starting worker [id:%d]\n", w.id)
 
 	w.m.Lock()
 	defer w.m.Unlock()
 
 	if w.internalState == state.Started {
-		log.Printf("[WARN] worker [id %d] is already started\n", w.id)
+		//log.Printf("[WARN] worker [id %d] is already started\n", w.id)
 		return
 	}
 
@@ -95,17 +88,17 @@ func (w *worker) start() {
 		for {
 			select {
 			case <-w.stopChan:
-				log.Printf("worker main loop got STOP signal")
+				//log.Printf("worker main loop got STOP signal")
 				return
 			case t := <-w.highPrioChan:
 				err := t.process(context.Background(), w.conn)
 				if err != nil {
-					log.Println("[worker] - could nod send data to tornimo:", err)
+					//log.Println("[worker] - could nod send data to tornimo:", err)
 				}
 			}
 		}
 	}()
 
 	w.internalState = state.Started
-	log.Printf("[OK] worker [id:%d] started\n", w.id)
+	//log.Printf("[OK] worker [id:%d] started\n", w.id)
 }

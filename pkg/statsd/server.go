@@ -35,7 +35,7 @@ type Server struct {
 	*/
 }
 
-func NewServer(port uint, metricOut chan<- []*metrics.MetricSample) (*Server, error) {
+func NewServer(port string, metricOut chan<- []*metrics.MetricSample) (*Server, error) {
 	packetsChan := make(chan []*packet, statsd_queue_size)
 	pool := newPacketPool(statsd_buffer_size)
 
