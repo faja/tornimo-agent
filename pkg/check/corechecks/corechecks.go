@@ -25,6 +25,7 @@ func genCoreChecks() []check.Check {
 	coreChecks := []check.Check{
 		system.NewLoadCheck(),
 		system.NewUptimeCheck(),
+		system.NewCpuCheck(),
 	}
 	return coreChecks
 }
